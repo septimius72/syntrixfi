@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SyntrixFi — Household Financial Operating System</title>
+  <title>SyntrixFi — Modern Cash Ledger</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -13,1094 +13,425 @@
         extend: {
           fontFamily: {
             sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Menlo', 'monospace'],
           },
           colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
+            obsidian: {
+              950: '#06070a',
+              900: '#090a0f',
+              850: '#0f1118',
+              800: '#141722',
+              700: '#1c2030',
+            },
+            neon: {
+              emerald: '#05f29a',
+              emeraldDim: '#10b981',
+              rose: '#ff3366',
+              roseDim: '#f43f5e',
+              indigo: '#6366f1',
+              cyan: '#06b6d4',
             }
           }
         }
       }
     };
   </script>
-  <!-- Phosphor Icons for high-contrast, scalable iconography -->
+  <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
-    /* Sleek scrollbars and active transitions */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    /* Sleek custom scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.65); }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
     .transition-smooth { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    
+    /* Click-to-edit inline cell state */
+    .editable-cell:hover {
+      background-color: rgba(99, 102, 241, 0.08);
+      border-radius: 0.375rem;
+      cursor: text;
+    }
+    .editable-cell:focus {
+      outline: none;
+      background-color: rgba(99, 102, 241, 0.15);
+      border-radius: 0.375rem;
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.6);
+    }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200">
+<body class="bg-[#F8F9FC] dark:bg-[#090A0F] text-slate-900 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200">
 
-  <!-- Main Application Wrapper -->
-  <div class="flex flex-col min-h-screen">
-    
-    <!-- Top Navigation Header -->
-    <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 lg:px-8 py-3 transition-colors">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-        
-        <!-- Logo Branding -->
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-brand-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
-              <i class="ph-bold ph-lightning text-2xl"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h1 class="text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">Syntrix<span class="text-indigo-600 dark:text-indigo-400">Fi</span></h1>
-                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">Local-First</span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Zero-Based • Sinking Funds • Debt Accelerator</p>
-            </div>
-          </div>
+  <!-- Main Container Wrapper -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-          <!-- Mobile Quick Add -->
-          <div class="flex items-center gap-2 md:hidden">
-            <button id="mobileNewTxBtn" class="p-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500">
-              <i class="ph-bold ph-plus text-lg"></i>
-            </button>
-            <button id="mobileThemeToggleBtn" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800">
-              <i class="ph ph-moon text-lg"></i>
-            </button>
-          </div>
+    <!-- Top Minimalist Bar: Brand, Auto-Theme, Export, Clear -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+          <i class="ph-bold ph-lightning text-xl"></i>
         </div>
-
-        <!-- Center: Interactive View Navigation Tabs -->
-        <nav class="flex items-center bg-slate-100 dark:bg-slate-800/90 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/80 self-center md:self-auto overflow-x-auto max-w-full">
-          <button id="tabNavEnvelopes" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold tracking-tight transition-smooth bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs">
-            <i class="ph ph-envelope-simple text-base"></i>
-            <span>Envelopes & Ledger</span>
-          </button>
-          <button id="tabNavSinking" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold tracking-tight transition-smooth text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
-            <i class="ph ph-hourglass-simple-medium text-base"></i>
-            <span>Sinking Funds</span>
-          </button>
-          <button id="tabNavDebt" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold tracking-tight transition-smooth text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
-            <i class="ph ph-trend-down text-base"></i>
-            <span>Debt Accelerator</span>
-          </button>
-        </nav>
-
-        <!-- Right Controls: Month Selector, New Transaction, Settings -->
-        <div class="hidden md:flex items-center gap-3">
-          <!-- Month Control -->
-          <div class="flex items-center bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-inner">
-            <button id="prevMonthBtn" title="Previous Month" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-xs transition-smooth">
-              <i class="ph ph-caret-left text-base"></i>
-            </button>
-            <span id="currentMonthDisplay" class="px-2.5 text-xs font-semibold tracking-tight min-w-[105px] text-center select-none">
-              Loading...
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-black tracking-tight uppercase text-slate-900 dark:text-white">
+              Syntrix<span class="text-indigo-600 dark:text-indigo-400">Fi</span>
+            </h1>
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              Cash Ledger
             </span>
-            <button id="nextMonthBtn" title="Next Month" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-xs transition-smooth">
-              <i class="ph ph-caret-right text-base"></i>
-            </button>
           </div>
-
-          <!-- Fast Add Transaction -->
-          <button id="openNewTxModalBtn" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-sm shadow-indigo-600/30 transition-smooth active:scale-95">
-            <i class="ph-bold ph-plus"></i>
-            <span>Add Entry</span>
-            <kbd class="ml-1 px-1.5 py-0.2 text-[10px] bg-indigo-700/60 rounded text-indigo-100 font-mono">N</kbd>
-          </button>
-
-          <!-- Utilities -->
-          <div class="flex items-center gap-1 border-l border-slate-200 dark:border-slate-800 pl-2">
-            <button id="themeToggleBtn" title="Toggle Theme" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-smooth">
-              <i id="themeIcon" class="ph ph-moon text-lg"></i>
-            </button>
-            <button id="openDataModalBtn" title="Data Backup & CSV" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-smooth">
-              <i class="ph ph-database text-lg"></i>
-            </button>
-          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Pure single-page running balance register</p>
         </div>
+      </div>
 
+      <!-- Action Utilities -->
+      <div class="flex items-center gap-2 self-end sm:self-auto">
+        <button id="themeToggleBtn" type="button" title="Toggle Light / Dark Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-smooth shadow-xs">
+          <i id="themeIcon" class="ph-bold ph-moon text-base"></i>
+        </button>
+
+        <button id="exportCsvBtn" type="button" title="Download CSV" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-smooth shadow-xs">
+          <i class="ph-bold ph-download-simple text-sm text-indigo-500"></i>
+          <span>Export CSV</span>
+        </button>
+
+        <button id="resetDemoBtn" type="button" title="Reload Sample Records" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-smooth shadow-xs">
+          <i class="ph ph-arrow-counter-clockwise text-sm"></i>
+          <span class="hidden sm:inline">Reset</span>
+        </button>
       </div>
     </header>
 
-    <!-- Global Metrics Banner -->
-    <section class="max-w-7xl w-full mx-auto px-4 lg:px-8 pt-6 pb-2">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+    <!-- KPI Metric Cards: Titanium & Electric Neon Glass Strip -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      
+      <!-- Total Inbound (Earnings) -->
+      <div class="p-5 rounded-2xl bg-white/80 dark:bg-obsidian-850/80 backdrop-blur-md border border-slate-200/80 dark:border-white/10 shadow-xs relative overflow-hidden group">
+        <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+          <span>Total Inbound (Earnings)</span>
+          <span class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-neon-emerald flex items-center justify-center">
+            <i class="ph-bold ph-arrow-down-left text-sm"></i>
+          </span>
+        </div>
+        <div id="metricInbound" class="font-mono text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-neon-emerald">
+          +$0.00
+        </div>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Cumulative earned inflows</p>
+      </div>
+
+      <!-- Total Outbound (Spending) -->
+      <div class="p-5 rounded-2xl bg-white/80 dark:bg-obsidian-850/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden group">
+        <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+          <span>Total Outbound (Spending)</span>
+          <span class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-neon-rose flex items-center justify-center">
+            <i class="ph-bold ph-arrow-up-right text-sm"></i>
+          </span>
+        </div>
+        <div id="metricOutbound" class="font-mono text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-600 dark:text-neon-rose">
+          -$0.00
+        </div>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Cumulative spent outflows</p>
+      </div>
+
+      <!-- Net Running Balance -->
+      <div class="p-5 rounded-2xl bg-white/80 dark:bg-obsidian-850/80 backdrop-blur-md border border-slate-200/80 dark:border-white/10 shadow-xs relative overflow-hidden group">
+        <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+          <span>Net Running Balance</span>
+          <span class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <i class="ph-bold ph-wallet text-sm"></i>
+          </span>
+        </div>
+        <div id="metricBalance" class="font-mono text-2xl sm:text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
+          $0.00
+        </div>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Current calculated net liquidity</p>
+      </div>
+
+    </section>
+
+    <!-- Rapid Inline Entry Bar: Fixed above the ledger table -->
+    <section class="p-4 rounded-2xl bg-white/90 dark:bg-obsidian-850/90 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <i class="ph-bold ph-plus-circle text-indigo-500"></i>
+          <span>Rapid Row Entry</span>
+        </div>
+        <span class="text-[11px] text-slate-400">Press <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 font-mono text-[10px] text-slate-700 dark:text-slate-300">Enter</kbd> from amount to add</span>
+      </div>
+
+      <form id="rapidEntryForm" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+        <!-- Date -->
+        <div class="sm:col-span-2">
+          <input type="date" id="inputDate" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-obsidian-800 border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <!-- Description -->
+        <div class="sm:col-span-4">
+          <input type="text" id="inputDesc" placeholder="Description (e.g. Client Invoice, Trader Joe's)" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-obsidian-800 border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <!-- Free-form Category Pill -->
+        <div class="sm:col-span-2">
+          <input type="text" id="inputCategory" placeholder="Tag (e.g. Groceries)" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-obsidian-800 border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <!-- Flow Type Toggle (+ Inbound / - Outbound) -->
+        <div class="sm:col-span-2 flex items-center bg-slate-100 dark:bg-obsidian-800 p-0.5 rounded-xl border border-slate-200 dark:border-white/10">
+          <button type="button" id="toggleInboundBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth text-slate-500 dark:text-slate-400 hover:text-emerald-500 flex items-center justify-center gap-1">
+            <span>+ In</span>
+          </button>
+          <button type="button" id="toggleOutboundBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth bg-white dark:bg-white/10 text-rose-600 dark:text-neon-rose shadow-xs flex items-center justify-center gap-1">
+            <span>- Out</span>
+          </button>
+        </div>
+
+        <!-- Amount & Submit -->
+        <div class="sm:col-span-2 flex items-center gap-2">
+          <div class="relative flex-1">
+            <span class="absolute left-2.5 top-2 text-slate-400 font-bold text-xs">$</span>
+            <input type="number" id="inputAmount" step="0.01" min="0.01" placeholder="0.00" required class="w-full pl-6 pr-2 py-2 rounded-xl bg-slate-50 dark:bg-obsidian-800 border border-slate-200 dark:border-white/10 font-mono text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <button type="submit" title="Add Row" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-smooth shadow-md shadow-indigo-600/30 flex-shrink-0 active:scale-95">
+            <i class="ph-bold ph-plus text-sm"></i>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Ledger Table (Newest-First • Click-to-Edit Cells • Tabular Numerals) -->
+    <section class="rounded-2xl bg-white/90 dark:bg-obsidian-850/90 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-xs overflow-hidden">
+      
+      <!-- Table Filter / Counter Header -->
+      <div class="px-5 py-3 border-b border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider text-[11px]">Ledger Register</span>
+          <span id="recordCountBadge" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400">
+            0 entries
+          </span>
+        </div>
         
-        <!-- Total Inflow -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium mb-1">
-            <span>Total Income</span>
-            <span class="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <i class="ph-bold ph-arrow-down-left"></i>
-            </span>
-          </div>
-          <div id="metricTotalIncome" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$0.00</div>
-          <p class="text-[11px] text-slate-400 mt-1">Cash inflow this period</p>
-        </div>
-
-        <!-- Total Outflow -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium mb-1">
-            <span>Total Outflow</span>
-            <span class="w-6 h-6 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <i class="ph-bold ph-arrow-up-right"></i>
-            </span>
-          </div>
-          <div id="metricTotalSpent" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$0.00</div>
-          <p class="text-[11px] text-slate-400 mt-1">Expenses & sinking drips</p>
-        </div>
-
-        <!-- Zero-Based Balance -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium mb-1">
-            <span>Unassigned (Zero-Based)</span>
-            <span class="w-6 h-6 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <i class="ph-bold ph-scales"></i>
-            </span>
-          </div>
-          <div id="metricUnallocated" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$0.00</div>
-          <div id="unallocatedBadge" class="text-[11px] mt-1 text-slate-400">Income vs allocations</div>
-        </div>
-
-        <!-- Net Flow & Savings Rate -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium mb-1">
-            <span>Net Monthly Surplus</span>
-            <span class="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <i class="ph-bold ph-chart-pie-slice"></i>
-            </span>
-          </div>
-          <div id="metricNetFlow" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">$0.00</div>
-          <div class="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-            <span>Savings/Accel Rate:</span>
-            <span id="metricSavingsRate" class="font-semibold text-indigo-600 dark:text-indigo-400">0%</span>
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <input type="text" id="searchLedgerInput" placeholder="Filter records..." class="pl-7 pr-3 py-1 rounded-xl bg-slate-50 dark:bg-obsidian-800 border border-slate-200 dark:border-white/10 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <i class="ph ph-magnifying-glass absolute left-2 top-1.5 text-slate-400 text-xs"></i>
           </div>
         </div>
+      </div>
 
+      <!-- Table Body -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200/80 dark:border-white/10 text-[11px] uppercase tracking-wider font-semibold text-slate-400 dark:text-slate-500 bg-slate-50/60 dark:bg-obsidian-900/60">
+              <th class="py-3 px-4 font-semibold w-28">Date</th>
+              <th class="py-3 px-4 font-semibold min-w-[200px]">Description</th>
+              <th class="py-3 px-4 font-semibold w-32">Category Tag</th>
+              <th class="py-3 px-4 font-semibold text-right font-mono w-32">Inbound (+)</th>
+              <th class="py-3 px-4 font-semibold text-right font-mono w-32">Outbound (-)</th>
+              <th class="py-3 px-4 font-semibold text-right font-mono w-36">Running Balance</th>
+              <th class="py-3 px-4 text-center w-12"></th>
+            </tr>
+          </thead>
+          <tbody id="ledgerTableBody" class="divide-y divide-slate-100 dark:divide-white/5">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State Indicator -->
+      <div id="emptyLedgerMessage" class="hidden p-12 text-center text-slate-400 text-xs space-y-2">
+        <i class="ph-bold ph-receipt text-3xl opacity-40"></i>
+        <p>No transactions recorded yet. Use the top bar to log your first inbound or outbound cash entry.</p>
       </div>
     </section>
 
-    <!-- Main Views Display Section -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-
-      <!-- ==================== VIEW 1: ENVELOPES & CASH FLOW LEDGER ==================== -->
-      <section id="viewEnvelopes" class="space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          <!-- Envelopes Allocation Column -->
-          <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div>
-                <h2 class="text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                  <i class="ph-bold ph-envelope-simple text-indigo-500"></i>
-                  Envelope Targets
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Every dollar allocated a duty</p>
-              </div>
-              <button id="openNewEnvelopeBtn" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-1 transition-smooth">
-                <i class="ph-bold ph-plus text-xs"></i> New Envelope
-              </button>
-            </div>
-
-            <div id="envelopeList" class="space-y-3 max-h-[580px] overflow-y-auto pr-1">
-              <!-- Dynamically Populated -->
-            </div>
-
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span>Total Envelope Cap:</span>
-              <span id="totalEnvelopesBudgeted" class="font-semibold text-slate-800 dark:text-slate-200">$0.00</span>
-            </div>
-          </div>
-
-          <!-- Cash Flow Ledger Column -->
-          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div>
-                <h2 class="text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                  <i class="ph-bold ph-receipt text-cyan-500"></i>
-                  Cash Flow Ledger
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Auditable, real-time transaction register</p>
-              </div>
-
-              <!-- Filter Controls -->
-              <div class="flex items-center flex-wrap gap-2">
-                <select id="filterType" class="text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border-none px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500">
-                  <option value="ALL">All Entries</option>
-                  <option value="EXPENSE">Expenses</option>
-                  <option value="INCOME">Income</option>
-                </select>
-
-                <select id="filterCategory" class="text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border-none px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 max-w-[130px]">
-                  <option value="ALL">All Envelopes</option>
-                </select>
-
-                <div class="relative">
-                  <input id="searchQuery" type="text" placeholder="Search..." class="text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border-none pl-7 pr-3 py-1.5 w-28 sm:w-36 focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-slate-200">
-                  <i class="ph ph-magnifying-glass absolute left-2 top-2 text-slate-400 text-xs"></i>
-                </div>
-              </div>
-            </div>
-
-            <!-- Ledger Scroll Area -->
-            <div id="txList" class="space-y-2 max-h-[580px] overflow-y-auto pr-1">
-              <!-- Dynamically Populated -->
-            </div>
-
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span id="txCountBadge">0 records</span>
-              <button id="quickExportLedgerBtn" class="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-semibold">
-                <i class="ph ph-download-simple"></i> Export Current Month CSV
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-
-      <!-- ==================== VIEW 2: SINKING FUNDS ACCRUAL ENGINE ==================== -->
-      <section id="viewSinking" class="space-y-6 hidden">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
-          
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Sinking Funds Accrual Engine</h2>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300">Irregular Bill Shield</span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Smooth out annual insurance, repairs, taxes, and holiday bills into deterministic monthly drips.</p>
-            </div>
-            
-            <div class="flex items-center gap-2">
-              <button id="autoDripAllBtn" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-cyan-600/30 transition-smooth">
-                <i class="ph-bold ph-drop"></i> Auto-Drip All Funds This Month
-              </button>
-              <button id="openNewSinkingModalBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-smooth">
-                <i class="ph-bold ph-plus"></i> New Sinking Fund
-              </button>
-            </div>
-          </div>
-
-          <!-- Sinking Funds Cards Grid -->
-          <div id="sinkingCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Dynamically Populated -->
-          </div>
-
-          <!-- Accrual Summary Box -->
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-            <div class="flex items-center gap-3">
-              <span class="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-950/70 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg">
-                <i class="ph-bold ph-info"></i>
-              </span>
-              <div>
-                <span class="font-bold text-slate-800 dark:text-slate-200">Dynamic Drip Equation:</span>
-                <span class="text-slate-500 dark:text-slate-400"> (Target Goal − Current Saved) ÷ Months Remaining. Drips protect you from emergency budget shocks.</span>
-              </div>
-            </div>
-            <div class="text-right whitespace-nowrap">
-              <span class="text-slate-500">Monthly Sinking Need: </span>
-              <span id="totalMonthlySinkingDrip" class="font-bold text-sm text-cyan-600 dark:text-cyan-400">$0.00</span>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-
-      <!-- ==================== VIEW 3: DEBT ACCELERATOR (SNOWBALL VS AVALANCHE) ==================== -->
-      <section id="viewDebt" class="space-y-6 hidden">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
-          
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Debt Elimination Engine</h2>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">Rollover Cascade</span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Direct surplus cash into your priority liability while maintaining contractual minimums on all others.</p>
-            </div>
-
-            <!-- Strategy Toggle & Add Debt -->
-            <div class="flex items-center flex-wrap gap-2.5">
-              <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-                <button id="strategySnowballBtn" class="px-3 py-1 rounded-lg text-xs font-bold transition-smooth bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs flex items-center gap-1.5">
-                  <i class="ph-bold ph-snowflake"></i> Snowball (Lowest Balance)
-                </button>
-                <button id="strategyAvalancheBtn" class="px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-smooth flex items-center gap-1.5">
-                  <i class="ph-bold ph-lightning"></i> Avalanche (Highest APR)
-                </button>
-              </div>
-
-              <button id="openNewDebtModalBtn" class="px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 text-xs font-semibold flex items-center gap-1.5">
-                <i class="ph-bold ph-plus"></i> Add Liability
-              </button>
-            </div>
-          </div>
-
-          <!-- Household Debt Burndown Bar -->
-          <div class="p-5 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-emerald-500/10 border border-slate-200/80 dark:border-slate-800 space-y-2">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <i class="ph-bold ph-fire text-rose-500"></i> Overall Household Debt Paydown Progress
-              </span>
-              <span id="debtPayoffPercentBadge" class="font-bold text-indigo-600 dark:text-indigo-400">0% Paid Off</span>
-            </div>
-            
-            <div class="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-              <div id="debtBurndownBar" class="h-full rounded-full bg-gradient-to-r from-rose-500 via-indigo-600 to-emerald-500 transition-all duration-500" style="width: 0%"></div>
-            </div>
-
-            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
-              <span>Total Current Debt: <b id="totalCurrentDebtLabel" class="text-slate-900 dark:text-white">$0.00</b></span>
-              <span>Total Minimum Commitments: <b id="totalMinPaymentLabel" class="text-slate-900 dark:text-white">$0.00/mo</b></span>
-            </div>
-          </div>
-
-          <!-- Priority Target Bullseye Highlight -->
-          <div id="priorityTargetCardContainer">
-            <!-- Dynamically Populated with the #1 Focus Target Account -->
-          </div>
-
-          <!-- Debts Cards / Grid -->
-          <div class="space-y-3">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">All Household Liabilities</h3>
-            <div id="debtCardsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <!-- Dynamically Populated -->
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-4 px-6 text-center text-xs text-slate-400 dark:text-slate-600">
-      <p>SyntrixFi — Autonomous Household Finance & Envelope Architecture. Data is encrypted and stored exclusively in this browser.</p>
+    <!-- Footer Note -->
+    <footer class="pt-2 pb-6 text-center text-[11px] text-slate-400 dark:text-slate-600">
+      SyntrixFi — Click any text, date, tag, or amount cell directly to edit inline. Changes update the running balance automatically.
     </footer>
-  </div>
 
-  <!-- ==================== MODALS ==================== -->
-
-  <!-- Modal: Add / Edit Transaction -->
-  <div id="txModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-5">
-        <h3 id="txModalTitle" class="text-lg font-bold text-slate-900 dark:text-white">Record Transaction</h3>
-        <button id="closeTxModalBtn" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="ph ph-x text-lg"></i>
-        </button>
-      </div>
-
-      <form id="txForm" class="space-y-4">
-        <input type="hidden" id="txId">
-
-        <!-- Type Selector Tabs -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Flow Type</label>
-          <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-            <button type="button" id="tabExpense" class="py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-xs flex items-center justify-center gap-1.5">
-              <i class="ph-bold ph-minus-circle"></i> Outflow (Expense)
-            </button>
-            <button type="button" id="tabIncome" class="py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-emerald-600 flex items-center justify-center gap-1.5">
-              <i class="ph-bold ph-plus-circle"></i> Inflow (Income)
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Amount ($)</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-slate-400 font-bold">$</span>
-              <input id="txAmount" type="number" step="0.01" min="0.01" required placeholder="0.00" class="w-full pl-7 pr-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Date</label>
-            <input id="txDate" type="date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-
-        <!-- Envelope Category -->
-        <div id="txEnvelopeGroup">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Envelope Allocation</label>
-          <select id="txCategory" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-            <!-- Populated via JS -->
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Payee / Description</label>
-          <input id="txDescription" type="text" placeholder="e.g. Costco, Electricity Bill, Salary" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-
-        <div class="pt-2">
-          <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/30 transition-smooth active:scale-98">
-            Commit to Ledger
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Add / Edit Envelope Target -->
-  <div id="envelopeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="envModalTitle" class="text-lg font-bold text-slate-900 dark:text-white">Envelope Target</h3>
-        <button id="closeEnvModalBtn" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="ph ph-x text-lg"></i>
-        </button>
-      </div>
-
-      <form id="envelopeForm" class="space-y-4">
-        <input type="hidden" id="envId">
-        
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Envelope Name</label>
-          <input id="envName" type="text" placeholder="e.g. Groceries, Mortgage, Gas" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Monthly Ceiling Target ($)</label>
-          <div class="relative">
-            <span class="absolute left-3 top-2.5 text-slate-400 font-bold">$</span>
-            <input id="envBudget" type="number" step="1" min="0" required placeholder="600" class="w-full pl-7 pr-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Badge Accent</label>
-          <input id="envColor" type="color" value="#6366f1" class="w-10 h-10 p-0 border-0 rounded-xl cursor-pointer bg-transparent">
-        </div>
-
-        <div class="flex items-center justify-between gap-3 pt-3">
-          <button type="button" id="deleteEnvBtn" class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-smooth hidden">
-            Delete
-          </button>
-          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/30 transition-smooth">
-            Save Envelope
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Add / Edit Sinking Fund -->
-  <div id="sinkingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="sinkingModalTitle" class="text-lg font-bold text-slate-900 dark:text-white">Configure Sinking Fund</h3>
-        <button id="closeSinkingModalBtn" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="ph ph-x text-lg"></i>
-        </button>
-      </div>
-
-      <form id="sinkingForm" class="space-y-4">
-        <input type="hidden" id="sinkingId">
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Fund Goal Name</label>
-          <input id="sinkingName" type="text" placeholder="e.g. Car Insurance, Vacation, Property Tax" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Target Goal ($)</label>
-            <input id="sinkingGoal" type="number" step="1" min="1" required placeholder="1200" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Saved So Far ($)</label>
-            <input id="sinkingSaved" type="number" step="1" min="0" required placeholder="300" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Due Date (Renewal / Bill Date)</label>
-          <input id="sinkingDate" type="date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-        </div>
-
-        <div class="flex items-center justify-between gap-3 pt-3">
-          <button type="button" id="deleteSinkingBtn" class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-smooth hidden">
-            Delete
-          </button>
-          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm shadow-md shadow-cyan-600/30 transition-smooth">
-            Save Sinking Fund
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Spend & Drain Sinking Fund -->
-  <div id="spendSinkingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pay Bill from Sinking Fund</h3>
-          <p id="spendSinkingFundTitle" class="text-xs text-slate-500"></p>
-        </div>
-        <button id="closeSpendSinkingModalBtn" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="ph ph-x text-lg"></i>
-        </button>
-      </div>
-
-      <form id="spendSinkingForm" class="space-y-4">
-        <input type="hidden" id="spendSinkingId">
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Amount to Disburse & Log as Paid ($)</label>
-          <input id="spendSinkingAmount" type="number" step="0.01" min="0.01" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Reset Target Date for Next Cycle</label>
-          <input id="spendSinkingNextDate" type="date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-          <p class="text-[11px] text-slate-400 mt-1">Sets the new due date for subsequent monthly drip calculations.</p>
-        </div>
-
-        <div class="pt-2">
-          <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm shadow-md shadow-cyan-600/30 transition-smooth">
-            Confirm Bill Payment & Drain Reserve
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Add / Edit Debt Liability -->
-  <div id="debtModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="debtModalTitle" class="text-lg font-bold text-slate-900 dark:text-white">Household Debt Liability</h3>
-        <button id="closeDebtModalBtn" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="ph ph-x text-lg"></i>
-        </button>
-      </div>
-
-      <form id="debtForm" class="space-y-4">
-        <input type="hidden" id="debtId">
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Debt Account Name</label>
-          <input id="debtName" type="text" placeholder="e.g. Visa Signature, Auto Loan, Student Loan" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Current Balance ($)</label>
-            <input id="debtBalance" type="number" step="0.01" min="0" required placeholder="3200" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Interest Rate (APR %)</label>
-            <input id="debtApr" type="number" step="0.01" min="0" required placeholder="24.9" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Min Monthly Payment ($)</label>
-            <input id="debtMinPay" type="number" step="0.01" min="0" required placeholder="85" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Initial Original Balance ($)</label>
-            <input id="debtInitial" type="number" step="0.01" min="0" required placeholder="5000" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between gap-3 pt-3">
-          <button type="button" id="deleteDebtBtn" class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-smooth hidden">
-            Delete
-          </button>
-          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-sm transition-smooth hover:opacity-90">
-            Save Liability
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Data Backup, CSV & Restore -->
-  <div id="dataModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs hidden">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2">
-          <i class="ph-bold ph-database text-indigo-500 text-xl"></i>
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white">SyntrixFi Data Security & Export</h3>
-        </div>
-        <button id="closeDataModalBtn" class="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="ph ph-x text-lg"></i>
-        </button>
-      </div>
-
-      <div class="space-y-6 text-sm">
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-bold text-slate-900 dark:text-slate-100">Spreadsheet CSV Exchange</div>
-              <div class="text-xs text-slate-500">Universal Excel / Google Sheets compatibility</div>
-            </div>
-            <button id="exportCsvBtn" class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-indigo-500 flex items-center gap-1.5 shadow-2xs">
-              <i class="ph-bold ph-file-csv text-emerald-600"></i> Export All CSV
-            </button>
-          </div>
-
-          <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700">
-            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Import CSV Transactions:</label>
-            <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-950 dark:file:text-indigo-300 hover:file:bg-indigo-100">
-          </div>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-3">
-          <div>
-            <div class="font-bold text-slate-900 dark:text-slate-100">Encrypted Full System Snapshot (JSON)</div>
-            <div class="text-xs text-slate-500">Archives all envelopes, ledger entries, sinking goals, and debts</div>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button id="exportJsonBtn" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-              <i class="ph ph-download"></i> Save Full Snapshot
-            </button>
-            <label class="cursor-pointer px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-indigo-500 flex items-center gap-1.5">
-              <i class="ph ph-upload"></i> Restore Snapshot
-              <input type="file" id="jsonFileInput" accept=".json" class="hidden">
-            </label>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between pt-2">
-          <span class="text-xs text-slate-400">Need to reload standard household data?</span>
-          <button id="resetDemoDataBtn" class="text-xs font-medium text-rose-500 hover:underline">
-            Reload SyntrixFi Demo
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Notification Toast Container -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- ==================== SYNTRANIX CORE ENGINE (JAVASCRIPT) ==================== -->
+  <!-- ==================== SYNTRANIX CORE ENGINE ==================== -->
   <script>
-    /* Default Seed Dataset for SyntrixFi */
-    const DEFAULT_ENVELOPES = [
-      { id: 'env_housing', name: 'Housing & Mortgage', budget: 1850, color: '#4f46e5' },
-      { id: 'env_groceries', name: 'Groceries & Consumables', budget: 700, color: '#10b981' },
-      { id: 'env_utilities', name: 'Utilities & Gigabit Internet', budget: 260, color: '#f59e0b' },
-      { id: 'env_transport', name: 'Auto Fuel & Maintenance', budget: 320, color: '#8b5cf6' },
-      { id: 'env_debt_accel', name: 'Debt Payoff Fund', budget: 650, color: '#ef4444' },
-      { id: 'env_lifestyle', name: 'Household Dining & Leisure', budget: 300, color: '#ec4899' }
-    ];
+    /* Safe Storage Adapter: Protects against file:/// SecurityErrors in Chrome, Firefox & Safari */
+    const SafeStorage = {
+      memoryStore: {},
+      isLocalStorageAvailable: (function() {
+        try {
+          const testKey = '__syntrix_test__';
+          window.localStorage.setItem(testKey, testKey);
+          window.localStorage.removeItem(testKey);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      })(),
 
-    const DEFAULT_SINKING_FUNDS = [
-      { id: 'sf_auto_ins', name: 'Car Insurance (Semi-Annual)', goal: 720, saved: 360, targetDate: '2026-12-15' },
-      { id: 'sf_holidays', name: 'Holiday Giving & Gifts', goal: 900, saved: 450, targetDate: '2026-12-24' },
-      { id: 'sf_property_tax', name: 'County Property Assessment', goal: 2400, saved: 1600, targetDate: '2027-04-15' }
-    ];
+      getItem(key) {
+        if (this.isLocalStorageAvailable) {
+          try {
+            return window.localStorage.getItem(key);
+          } catch (e) {
+            return this.memoryStore[key] || null;
+          }
+        }
+        return this.memoryStore[key] || null;
+      },
 
-    const DEFAULT_DEBTS = [
-      { id: 'debt_cc_01', name: 'Visa Sapphire Preferred', balance: 2200.00, apr: 24.99, minPay: 75.00, initialBalance: 3500.00 },
-      { id: 'debt_auto', name: 'Auto Loan (Subaru)', balance: 6400.00, apr: 5.49, minPay: 285.00, initialBalance: 14000.00 },
-      { id: 'debt_store', name: 'Home Depot Store Card', balance: 850.00, apr: 28.99, minPay: 35.00, initialBalance: 1200.00 }
-    ];
+      setItem(key, value) {
+        this.memoryStore[key] = value;
+        if (this.isLocalStorageAvailable) {
+          try {
+            window.localStorage.setItem(key, value);
+          } catch (e) {
+            // fallback
+          }
+        }
+      }
+    };
 
+    /* Baseline Demo Dataset */
     function getTodayString() {
       const now = new Date();
       return now.toISOString().split('T')[0];
     }
 
-    function getDefaultTransactions() {
+    function getDefaultRecords() {
       const now = new Date();
       const yr = now.getFullYear();
       const mo = String(now.getMonth() + 1).padStart(2, '0');
 
       return [
-        { id: 'tx_1', type: 'INCOME', amount: 4800.00, category: 'Income', description: 'Primary Monthly Net Salary', date: `${yr}-${mo}-01` },
-        { id: 'tx_2', type: 'INCOME', amount: 650.00, category: 'Income', description: 'Consulting Contract Inflow', date: `${yr}-${mo}-05` },
-        { id: 'tx_3', type: 'EXPENSE', amount: 1850.00, category: 'Housing & Mortgage', description: 'Mortgage Escrow Wire', date: `${yr}-${mo}-02` },
-        { id: 'tx_4', type: 'EXPENSE', amount: 164.20, category: 'Groceries & Consumables', description: 'Weekly Wholesale Provisions', date: `${yr}-${mo}-04` },
-        { id: 'tx_5', type: 'EXPENSE', amount: 85.00, category: 'Utilities & Internet', description: 'Fiber Optic ISP', date: `${yr}-${mo}-07` },
-        { id: 'tx_6', type: 'EXPENSE', amount: 62.00, category: 'Auto Fuel & Maintenance', description: 'Vehicle Fuel Fill-Up', date: `${yr}-${mo}-09` },
-        { id: 'tx_7', type: 'EXPENSE', amount: 55.40, category: 'Household Dining & Leisure', description: 'Bistro Family Takeout', date: `${yr}-${mo}-11` }
+        { id: 'rec_1', date: `${yr}-${mo}-01`, desc: 'Primary Net Salary Paycheck', category: 'Salary', type: 'INBOUND', amount: 4800.00 },
+        { id: 'rec_2', date: `${yr}-${mo}-02`, desc: 'Downtown Loft Rent Escrow', category: 'Housing', type: 'OUTBOUND', amount: 1850.00 },
+        { id: 'rec_3', date: `${yr}-${mo}-04`, desc: 'Whole Foods Market Provisions', category: 'Groceries', type: 'OUTBOUND', amount: 164.20 },
+        { id: 'rec_4', date: `${yr}-${mo}-05`, desc: 'Client Consulting Inflow', category: 'Freelance', type: 'INBOUND', amount: 650.00 },
+        { id: 'rec_5', date: `${yr}-${mo}-07`, desc: 'Fiber Optic Gigabit Internet', category: 'Utilities', type: 'OUTBOUND', amount: 85.00 },
+        { id: 'rec_6', date: `${yr}-${mo}-09`, desc: 'Shell Vehicle Fuel Fill-up', category: 'Transit', type: 'OUTBOUND', amount: 62.00 },
+        { id: 'rec_7', date: `${yr}-${mo}-11`, desc: 'Family Bistro Takeout', category: 'Dining', type: 'OUTBOUND', amount: 55.40 }
       ];
     }
 
-    /* SyntrixFi Unified Store */
-    class SyntrixStore {
+    /* Ledger Store */
+    class LedgerStore {
       constructor() {
-        this.STORAGE_KEY = 'syntrixfi_state';
-        this.currentDate = new Date();
-        this.activeView = 'envelopes'; // 'envelopes' | 'sinking' | 'debt'
-        this.debtStrategy = 'snowball'; // 'snowball' | 'avalanche'
-        this.state = this.loadState();
+        this.STORAGE_KEY = 'syntrixfi_ledger_records_v1';
+        this.records = this.loadRecords();
       }
 
-      loadState() {
+      loadRecords() {
         try {
-          const raw = localStorage.getItem(this.STORAGE_KEY);
+          const raw = SafeStorage.getItem(this.STORAGE_KEY);
           if (raw) {
             const parsed = JSON.parse(raw);
-            if (parsed.envelopes && parsed.transactions) {
-              return {
-                envelopes: parsed.envelopes,
-                transactions: parsed.transactions,
-                sinkingFunds: parsed.sinkingFunds || DEFAULT_SINKING_FUNDS,
-                debts: parsed.debts || DEFAULT_DEBTS,
-                settings: parsed.settings || { theme: 'system' }
-              };
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return parsed;
             }
           }
         } catch (e) {
-          console.error("SyntrixFi State Recovery Notice:", e);
+          // fallback
         }
-
-        const initial = {
-          envelopes: DEFAULT_ENVELOPES,
-          transactions: getDefaultTransactions(),
-          sinkingFunds: DEFAULT_SINKING_FUNDS,
-          debts: DEFAULT_DEBTS,
-          settings: { theme: 'system' }
-        };
-        this.saveState(initial);
+        const initial = getDefaultRecords();
+        this.saveRecords(initial);
         return initial;
       }
 
-      saveState(stateToSave = this.state) {
+      saveRecords(recordsToSave = this.records) {
         try {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(stateToSave));
+          SafeStorage.setItem(this.STORAGE_KEY, JSON.stringify(recordsToSave));
         } catch (err) {
-          console.error("SyntrixFi LocalStorage serialization failed:", err);
-          showToast("Error writing to local storage.", "error");
+          console.error("Storage write notice:", err);
         }
       }
 
-      getCurrentMonthKey() {
-        const yr = this.currentDate.getFullYear();
-        const mo = String(this.currentDate.getMonth() + 1).padStart(2, '0');
-        return `${yr}-${mo}`;
+      addRecord(rec) {
+        rec.id = 'rec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+        this.records.push(rec);
+        this.saveRecords();
       }
 
-      getCurrentMonthLabel() {
-        return this.currentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-      }
+      updateRecord(id, field, value) {
+        const item = this.records.find(r => r.id === id);
+        if (!item) return;
 
-      changeMonth(offset) {
-        this.currentDate.setMonth(this.currentDate.getMonth() + offset);
-      }
-
-      // Ledger Operations
-      addTransaction(tx) {
-        tx.id = 'tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-        this.state.transactions.unshift(tx);
-        this.saveState();
-      }
-
-      updateTransaction(updated) {
-        const idx = this.state.transactions.findIndex(t => t.id === updated.id);
-        if (idx !== -1) {
-          this.state.transactions[idx] = updated;
-          this.saveState();
-        }
-      }
-
-      deleteTransaction(id) {
-        this.state.transactions = this.state.transactions.filter(t => t.id !== id);
-        this.saveState();
-      }
-
-      // Envelopes Operations
-      saveEnvelope(env) {
-        if (!env.id) {
-          env.id = 'env_' + Date.now();
-          this.state.envelopes.push(env);
+        if (field === 'amount') {
+          const num = parseFloat(value);
+          if (!isNaN(num) && num > 0) item.amount = num;
+        } else if (field === 'type') {
+          if (value === 'INBOUND' || value === 'OUTBOUND') item.type = value;
         } else {
-          const idx = this.state.envelopes.findIndex(e => e.id === env.id);
-          if (idx !== -1) {
-            const oldName = this.state.envelopes[idx].name;
-            this.state.envelopes[idx] = env;
-            if (oldName !== env.name) {
-              this.state.transactions.forEach(t => {
-                if (t.category === oldName) t.category = env.name;
-              });
-            }
-          }
+          item[field] = value;
         }
-        this.saveState();
+        this.saveRecords();
       }
 
-      deleteEnvelope(id) {
-        const env = this.state.envelopes.find(e => e.id === id);
-        if (!env) return;
-        this.state.envelopes = this.state.envelopes.filter(e => e.id !== id);
-        this.state.transactions.forEach(t => {
-          if (t.category === env.name) t.category = 'Other';
-        });
-        this.saveState();
+      deleteRecord(id) {
+        this.records = this.records.filter(r => r.id !== id);
+        this.saveRecords();
       }
 
-      // Sinking Funds Operations
-      saveSinkingFund(fund) {
-        if (!fund.id) {
-          fund.id = 'sf_' + Date.now();
-          this.state.sinkingFunds.push(fund);
-        } else {
-          const idx = this.state.sinkingFunds.findIndex(s => s.id === fund.id);
-          if (idx !== -1) this.state.sinkingFunds[idx] = fund;
-        }
-        this.saveState();
+      resetToDemo() {
+        this.records = getDefaultRecords();
+        this.saveRecords();
       }
 
-      deleteSinkingFund(id) {
-        this.state.sinkingFunds = this.state.sinkingFunds.filter(s => s.id !== id);
-        this.saveState();
-      }
+      /* Compute accurate running balances from chronological sum */
+      getProcessedRecords() {
+        // Sort oldest to newest for cumulative calculation
+        const chronological = [...this.records].sort((a, b) => new Date(a.date) - new Date(b.date) || a.id.localeCompare(b.id));
 
-      dripIntoSinkingFund(id, amount) {
-        const fund = this.state.sinkingFunds.find(s => s.id === id);
-        if (!fund) return;
-        fund.saved = Math.min(fund.goal, (Number(fund.saved) || 0) + amount);
-        
-        // Log transaction to cash-flow register
-        this.addTransaction({
-          type: 'EXPENSE',
-          amount: amount,
-          category: 'Sinking Reserve',
-          description: `Sinking Drip: ${fund.name}`,
-          date: getTodayString()
-        });
-        this.saveState();
-      }
+        let currentRunningBalance = 0;
+        let totalInbound = 0;
+        let totalOutbound = 0;
 
-      spendAndDrainSinkingFund(id, amount, nextDate) {
-        const fund = this.state.sinkingFunds.find(s => s.id === id);
-        if (!fund) return;
-        fund.saved = Math.max(0, (Number(fund.saved) || 0) - amount);
-        if (nextDate) fund.targetDate = nextDate;
-
-        this.addTransaction({
-          type: 'EXPENSE',
-          amount: amount,
-          category: 'Sinking Reserve',
-          description: `Paid Bill via Sinking: ${fund.name}`,
-          date: getTodayString()
-        });
-        this.saveState();
-      }
-
-      // Debt Liabilities Operations
-      saveDebt(debt) {
-        if (!debt.id) {
-          debt.id = 'debt_' + Date.now();
-          this.state.debts.push(debt);
-        } else {
-          const idx = this.state.debts.findIndex(d => d.id === debt.id);
-          if (idx !== -1) this.state.debts[idx] = debt;
-        }
-        this.saveState();
-      }
-
-      deleteDebt(id) {
-        this.state.debts = this.state.debts.filter(d => d.id !== id);
-        this.saveState();
-      }
-
-      payDownDebt(id, amount, isFullTarget = false) {
-        const debt = this.state.debts.find(d => d.id === id);
-        if (!debt) return;
-        const actualPayment = Math.min(debt.balance, amount);
-        debt.balance = Math.max(0, debt.balance - actualPayment);
-
-        this.addTransaction({
-          type: 'EXPENSE',
-          amount: actualPayment,
-          category: 'Debt Payoff Fund',
-          description: `Debt Paydown: ${debt.name}${isFullTarget ? ' [Target Booster]' : ''}`,
-          date: getTodayString()
-        });
-        this.saveState();
-      }
-
-      replaceState(newState) {
-        if (newState.envelopes && newState.transactions) {
-          this.state = newState;
-          this.saveState();
-          return true;
-        }
-        return false;
-      }
-    }
-
-    const store = new SyntrixStore();
-
-    /* ==================== SINKING FUND DRIP CALCULATOR ==================== */
-    function calculateSinkingDrip(fund) {
-      const now = new Date();
-      const target = new Date(fund.targetDate);
-      
-      const yearDiff = target.getFullYear() - now.getFullYear();
-      const monthDiff = target.getMonth() - now.getMonth();
-      const monthsLeft = Math.max(1, (yearDiff * 12) + monthDiff + 1);
-
-      const remainingNeeded = Math.max(0, fund.goal - fund.saved);
-      const suggestedDrip = remainingNeeded > 0 ? (remainingNeeded / monthsLeft) : 0;
-
-      return {
-        monthsLeft,
-        remainingNeeded,
-        suggestedDrip: Number(suggestedDrip.toFixed(2)),
-        percent: Math.min(100, Math.round((fund.saved / fund.goal) * 100))
-      };
-    }
-
-    /* ==================== DEBT ACCELERATOR ENGINE ==================== */
-    function getSortedDebts(debts, strategy = 'snowball') {
-      return [...debts]
-        .filter(d => d.balance > 0)
-        .sort((a, b) => {
-          if (strategy === 'snowball') {
-            return a.balance - b.balance; // Lowest balance first
+        const withBalances = chronological.map(rec => {
+          const amt = Number(rec.amount) || 0;
+          if (rec.type === 'INBOUND') {
+            totalInbound += amt;
+            currentRunningBalance += amt;
           } else {
-            return b.apr - a.apr; // Highest interest first
+            totalOutbound += amt;
+            currentRunningBalance -= amt;
           }
+          return {
+            ...rec,
+            runningBalance: currentRunningBalance
+          };
         });
+
+        // Return newest first for banking display
+        withBalances.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id.localeCompare(a.id));
+
+        return {
+          records: withBalances,
+          totalInbound,
+          totalOutbound,
+          netBalance: currentRunningBalance
+        };
+      }
     }
 
-    /* ==================== UI CONTROLLER ==================== */
-    const UI = {
-      // Top Navigation
-      tabNavEnvelopes: document.getElementById('tabNavEnvelopes'),
-      tabNavSinking: document.getElementById('tabNavSinking'),
-      tabNavDebt: document.getElementById('tabNavDebt'),
-      viewEnvelopes: document.getElementById('viewEnvelopes'),
-      viewSinking: document.getElementById('viewSinking'),
-      viewDebt: document.getElementById('viewDebt'),
+    const store = new LedgerStore();
+    let currentEntryType = 'OUTBOUND'; // Default to spending
 
-      // Month & Modals trigger
-      prevMonthBtn: document.getElementById('prevMonthBtn'),
-      nextMonthBtn: document.getElementById('nextMonthBtn'),
-      currentMonthDisplay: document.getElementById('currentMonthDisplay'),
-      openNewTxModalBtn: document.getElementById('openNewTxModalBtn'),
-      mobileNewTxBtn: document.getElementById('mobileNewTxBtn'),
-      openDataModalBtn: document.getElementById('openDataModalBtn'),
-      themeToggleBtn: document.getElementById('themeToggleBtn'),
-      mobileThemeToggleBtn: document.getElementById('mobileThemeToggleBtn'),
-      themeIcon: document.getElementById('themeIcon'),
-
-      // Metrics
-      metricTotalIncome: document.getElementById('metricTotalIncome'),
-      metricTotalSpent: document.getElementById('metricTotalSpent'),
-      metricUnallocated: document.getElementById('metricUnallocated'),
-      unallocatedBadge: document.getElementById('unallocatedBadge'),
-      metricNetFlow: document.getElementById('metricNetFlow'),
-      metricSavingsRate: document.getElementById('metricSavingsRate'),
-      totalEnvelopesBudgeted: document.getElementById('totalEnvelopesBudgeted'),
-
-      // Ledger & Envelope views
-      envelopeList: document.getElementById('envelopeList'),
-      txList: document.getElementById('txList'),
-      txCountBadge: document.getElementById('txCountBadge'),
-      filterType: document.getElementById('filterType'),
-      filterCategory: document.getElementById('filterCategory'),
-      searchQuery: document.getElementById('searchQuery'),
-      quickExportLedgerBtn: document.getElementById('quickExportLedgerBtn'),
-      openNewEnvelopeBtn: document.getElementById('openNewEnvelopeBtn'),
-
-      // Sinking Fund Elements
-      sinkingCardsContainer: document.getElementById('sinkingCardsContainer'),
-      openNewSinkingModalBtn: document.getElementById('openNewSinkingModalBtn'),
-      autoDripAllBtn: document.getElementById('autoDripAllBtn'),
-      totalMonthlySinkingDrip: document.getElementById('totalMonthlySinkingDrip'),
-
-      // Debt Elements
-      strategySnowballBtn: document.getElementById('strategySnowballBtn'),
-      strategyAvalancheBtn: document.getElementById('strategyAvalancheBtn'),
-      debtPayoffPercentBadge: document.getElementById('debtPayoffPercentBadge'),
-      debtBurndownBar: document.getElementById('debtBurndownBar'),
-      totalCurrentDebtLabel: document.getElementById('totalCurrentDebtLabel'),
-      totalMinPaymentLabel: document.getElementById('totalMinPaymentLabel'),
-      priorityTargetCardContainer: document.getElementById('priorityTargetCardContainer'),
-      debtCardsList: document.getElementById('debtCardsList'),
-      openNewDebtModalBtn: document.getElementById('openNewDebtModalBtn'),
-
-      // Modals
-      txModal: document.getElementById('txModal'),
-      closeTxModalBtn: document.getElementById('closeTxModalBtn'),
-      txForm: document.getElementById('txForm'),
-      txModalTitle: document.getElementById('txModalTitle'),
-      txId: document.getElementById('txId'),
-      txAmount: document.getElementById('txAmount'),
-      txDate: document.getElementById('txDate'),
-      txCategory: document.getElementById('txCategory'),
-      txDescription: document.getElementById('txDescription'),
-      tabExpense: document.getElementById('tabExpense'),
-      tabIncome: document.getElementById('tabIncome'),
-      txEnvelopeGroup: document.getElementById('txEnvelopeGroup'),
-
-      envelopeModal: document.getElementById('envelopeModal'),
-      closeEnvModalBtn: document.getElementById('closeEnvModalBtn'),
-      envelopeForm: document.getElementById('envelopeForm'),
-      envId: document.getElementById('envId'),
-      envName: document.getElementById('envName'),
-      envBudget: document.getElementById('envBudget'),
-      envColor: document.getElementById('envColor'),
-      deleteEnvBtn: document.getElementById('deleteEnvBtn'),
-
-      sinkingModal: document.getElementById('sinkingModal'),
-      closeSinkingModalBtn: document.getElementById('closeSinkingModalBtn'),
-      sinkingForm: document.getElementById('sinkingForm'),
-      sinkingId: document.getElementById('sinkingId'),
-      sinkingName: document.getElementById('sinkingName'),
-      sinkingGoal: document.getElementById('sinkingGoal'),
-      sinkingSaved: document.getElementById('sinkingSaved'),
-      sinkingDate: document.getElementById('sinkingDate'),
-      deleteSinkingBtn: document.getElementById('deleteSinkingBtn'),
-
-      spendSinkingModal: document.getElementById('spendSinkingModal'),
-      closeSpendSinkingModalBtn: document.getElementById('closeSpendSinkingModalBtn'),
-      spendSinkingForm: document.getElementById('spendSinkingForm'),
-      spendSinkingId: document.getElementById('spendSinkingId'),
-      spendSinkingFundTitle: document.getElementById('spendSinkingFundTitle'),
-      spendSinkingAmount: document.getElementById('spendSinkingAmount'),
-      spendSinkingNextDate: document.getElementById('spendSinkingNextDate'),
-
-      debtModal: document.getElementById('debtModal'),
-      closeDebtModalBtn: document.getElementById('closeDebtModalBtn'),
-      debtForm: document.getElementById('debtForm'),
-      debtId: document.getElementById('debtId'),
-      debtName: document.getElementById('debtName'),
-      debtBalance: document.getElementById('debtBalance'),
-      debtApr: document.getElementById('debtApr'),
-      debtMinPay: document.getElementById('debtMinPay'),
-      debtInitial: document.getElementById('debtInitial'),
-      deleteDebtBtn: document.getElementById('deleteDebtBtn'),
-
-      dataModal: document.getElementById('dataModal'),
-      closeDataModalBtn: document.getElementById('closeDataModalBtn'),
-      exportCsvBtn: document.getElementById('exportCsvBtn'),
-      csvFileInput: document.getElementById('csvFileInput'),
-      exportJsonBtn: document.getElementById('exportJsonBtn'),
-      jsonFileInput: document.getElementById('jsonFileInput'),
-      resetDemoDataBtn: document.getElementById('resetDemoDataBtn'),
-      toastContainer: document.getElementById('toastContainer')
-    };
-
-    let activeTxModalType = 'EXPENSE';
-
+    /* Formatting Helpers */
     const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
 
     const formatDateDisplay = (dateStr) => {
       if (!dateStr) return '';
-      const [year, month, day] = dateStr.split('-');
-      const d = new Date(year, month - 1, day);
-      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const parts = dateStr.split('-');
+      if (parts.length < 3) return dateStr;
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
       const toast = document.createElement('div');
       const colors = {
         info: 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-700',
@@ -1110,485 +441,142 @@
       toast.className = `px-4 py-2.5 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2 border pointer-events-auto transition-smooth transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
       const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'warning-circle' : 'info';
       toast.innerHTML = `<i class="ph-bold ph-${icon} text-base"></i><span>${msg}</span>`;
-      UI.toastContainer.appendChild(toast);
+      container.appendChild(toast);
       
       requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 250);
-      }, 3200);
+      }, 2800);
     }
 
-    function switchView(viewName) {
-      store.activeView = viewName;
-      const tabs = [
-        { name: 'envelopes', btn: UI.tabNavEnvelopes, el: UI.viewEnvelopes },
-        { name: 'sinking', btn: UI.tabNavSinking, el: UI.viewSinking },
-        { name: 'debt', btn: UI.tabNavDebt, el: UI.viewDebt }
-      ];
-
-      tabs.forEach(t => {
-        if (t.name === viewName) {
-          t.el.classList.remove('hidden');
-          t.btn.className = "tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold tracking-tight transition-smooth bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs";
-        } else {
-          t.el.classList.add('hidden');
-          t.btn.className = "tab-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold tracking-tight transition-smooth text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
-        }
-      });
-      renderApp();
-    }
-
-    /* Core Render Dispatcher */
+    /* Render Ledger & KPIs */
     function renderApp() {
-      const monthKey = store.getCurrentMonthKey();
-      UI.currentMonthDisplay.textContent = store.getCurrentMonthLabel();
+      const { records, totalInbound, totalOutbound, netBalance } = store.getProcessedRecords();
 
-      // Current Month Ledger Calculations
-      const monthTxs = store.state.transactions.filter(t => t.date && t.date.startsWith(monthKey));
-
-      let totalIncome = 0;
-      let totalSpent = 0;
-      const spentByEnvelope = {};
-
-      store.state.envelopes.forEach(e => spentByEnvelope[e.name] = 0);
-
-      monthTxs.forEach(tx => {
-        const amt = Number(tx.amount) || 0;
-        if (tx.type === 'INCOME') {
-          totalIncome += amt;
-        } else {
-          totalSpent += amt;
-          spentByEnvelope[tx.category] = (spentByEnvelope[tx.category] || 0) + amt;
-        }
-      });
-
-      const totalBudgeted = store.state.envelopes.reduce((acc, e) => acc + (Number(e.budget) || 0), 0);
-      const unallocated = totalIncome - totalBudgeted;
-      const netSurplus = totalIncome - totalSpent;
-      const savingsRate = totalIncome > 0 ? Math.max(0, Math.round((netSurplus / totalIncome) * 100)) : 0;
-
-      // Update Top Metrics
-      UI.metricTotalIncome.textContent = formatCurrency(totalIncome);
-      UI.metricTotalSpent.textContent = formatCurrency(totalSpent);
-      UI.metricNetFlow.textContent = (netSurplus >= 0 ? '+' : '') + formatCurrency(netSurplus);
-      UI.metricNetFlow.className = `text-xl sm:text-2xl font-bold tracking-tight ${netSurplus >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`;
-      UI.metricSavingsRate.textContent = `${savingsRate}%`;
-      UI.totalEnvelopesBudgeted.textContent = formatCurrency(totalBudgeted);
-
-      UI.metricUnallocated.textContent = formatCurrency(unallocated);
-      if (Math.abs(unallocated) < 0.01) {
-        UI.metricUnallocated.className = "text-xl sm:text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400";
-        UI.unallocatedBadge.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><i class="ph-bold ph-check"></i> Balanced to Zero!</span>`;
-      } else if (unallocated > 0) {
-        UI.metricUnallocated.className = "text-xl sm:text-2xl font-bold tracking-tight text-amber-500";
-        UI.unallocatedBadge.textContent = `${formatCurrency(unallocated)} remaining to assign`;
+      // 1. Update Hero KPIs
+      document.getElementById('metricInbound').textContent = `+${formatCurrency(totalInbound)}`;
+      document.getElementById('metricOutbound').textContent = `-${formatCurrency(totalOutbound)}`;
+      
+      const balanceEl = document.getElementById('metricBalance');
+      balanceEl.textContent = formatCurrency(netBalance);
+      if (netBalance >= 0) {
+        balanceEl.className = "font-mono text-2xl sm:text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400";
       } else {
-        UI.metricUnallocated.className = "text-xl sm:text-2xl font-bold tracking-tight text-rose-500";
-        UI.unallocatedBadge.textContent = `Over-budgeted by ${formatCurrency(Math.abs(unallocated))}`;
+        balanceEl.className = "font-mono text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-600 dark:text-neon-rose";
       }
 
-      // Render Sub-Views
-      populateCategoryDropdowns();
-      renderEnvelopes(spentByEnvelope);
-      renderLedger(monthTxs);
-      renderSinkingFunds();
-      renderDebtAccelerator();
-    }
-
-    /* Render Envelopes */
-    function renderEnvelopes(spentByEnvelope) {
-      UI.envelopeList.innerHTML = '';
-      if (store.state.envelopes.length === 0) {
-        UI.envelopeList.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">No envelopes established. Tap "+ New Envelope".</p>`;
-        return;
-      }
-
-      store.state.envelopes.forEach(env => {
-        const spent = spentByEnvelope[env.name] || 0;
-        const budget = Number(env.budget) || 0;
-        const percent = budget > 0 ? Math.min(Math.round((spent / budget) * 100), 200) : (spent > 0 ? 100 : 0);
-        const remaining = budget - spent;
-
-        let statusClass = 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 dark:text-indigo-300';
-        let barColor = env.color || '#4f46e5';
-
-        if (percent >= 100) {
-          statusClass = 'text-rose-600 bg-rose-50 dark:bg-rose-950/60 dark:text-rose-300';
-          barColor = '#f43f5e';
-        } else if (percent >= 80) {
-          statusClass = 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300';
-        }
-
-        const card = document.createElement('div');
-        card.className = "p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100/70 dark:hover:bg-slate-800 transition-smooth cursor-pointer group";
-        card.onclick = () => openEditEnvelopeModal(env);
-        card.innerHTML = `
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${env.color}"></span>
-              <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">${escapeHtml(env.name)}</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${statusClass}">${percent}%</span>
-              <i class="ph ph-pencil-simple text-slate-400 group-hover:text-slate-600 text-xs"></i>
-            </div>
-          </div>
-          <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mb-1.5">
-            <div class="h-full rounded-full transition-all duration-300" style="width: ${Math.min(percent, 100)}%; background-color: ${barColor}"></div>
-          </div>
-          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Spent: <b class="text-slate-900 dark:text-slate-200">${formatCurrency(spent)}</b></span>
-            <span>Target: ${formatCurrency(budget)}</span>
-            <span class="${remaining < 0 ? 'text-rose-500 font-bold' : 'text-slate-600 dark:text-slate-300'}">
-              ${remaining >= 0 ? 'Left: ' + formatCurrency(remaining) : 'Over: ' + formatCurrency(Math.abs(remaining))}
-            </span>
-          </div>
-        `;
-        UI.envelopeList.appendChild(card);
-      });
-    }
-
-    /* Render Ledger */
-    function renderLedger(monthTxs) {
-      UI.txList.innerHTML = '';
-      const typeFilter = UI.filterType.value;
-      const catFilter = UI.filterCategory.value;
-      const query = UI.searchQuery.value.trim().toLowerCase();
-
-      let filtered = monthTxs.filter(tx => {
-        if (typeFilter !== 'ALL' && tx.type !== typeFilter) return false;
-        if (catFilter !== 'ALL' && tx.category !== catFilter) return false;
-        if (query) {
-          const mDesc = (tx.description || '').toLowerCase().includes(query);
-          const mCat = (tx.category || '').toLowerCase().includes(query);
-          const mAmt = (tx.amount || '').toString().includes(query);
-          if (!mDesc && !mCat && !mAmt) return false;
-        }
-        return true;
+      // 2. Filter records by search query
+      const searchQuery = (document.getElementById('searchLedgerInput').value || '').trim().toLowerCase();
+      const filtered = records.filter(r => {
+        if (!searchQuery) return true;
+        const inDesc = (r.desc || '').toLowerCase().includes(searchQuery);
+        const inCat = (r.category || '').toLowerCase().includes(searchQuery);
+        const inDate = (r.date || '').toLowerCase().includes(searchQuery);
+        const inAmt = (r.amount || '').toString().includes(searchQuery);
+        return inDesc || inCat || inDate || inAmt;
       });
 
-      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-      UI.txCountBadge.textContent = `${filtered.length} entries for ${store.getCurrentMonthLabel()}`;
+      // 3. Render Table Rows
+      const tbody = document.getElementById('ledgerTableBody');
+      const emptyMsg = document.getElementById('emptyLedgerMessage');
+      const countBadge = document.getElementById('recordCountBadge');
+
+      tbody.innerHTML = '';
+      countBadge.textContent = `${filtered.length} entries`;
 
       if (filtered.length === 0) {
-        UI.txList.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">No transactions recorded under this filter criteria.</p>`;
+        emptyMsg.classList.remove('hidden');
         return;
       }
+      emptyMsg.classList.add('hidden');
 
-      filtered.forEach(tx => {
-        const isIncome = tx.type === 'INCOME';
-        const card = document.createElement('div');
-        card.className = "flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/30 hover:border-slate-300 dark:hover:border-slate-700 transition-smooth group";
+      filtered.forEach(rec => {
+        const isIncome = rec.type === 'INBOUND';
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/70 dark:hover:bg-obsidian-800/50 transition-smooth group";
 
-        const env = store.state.envelopes.find(e => e.name === tx.category);
-        const tagColor = env ? env.color : '#64748b';
+        tr.innerHTML = `
+          <!-- Date (Click to edit) -->
+          <td class="py-3 px-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-medium">
+            <span class="editable-cell px-1.5 py-1" contenteditable="true" data-field="date" data-id="${rec.id}">${rec.date}</span>
+          </td>
 
-        card.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isIncome ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}">
-              <i class="ph-bold ${isIncome ? 'ph-arrow-down-left' : 'ph-arrow-up-right'} text-sm"></i>
-            </div>
-            <div class="min-w-0">
-              <p class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">${escapeHtml(tx.description)}</p>
-              <div class="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
-                <span>${formatDateDisplay(tx.date)}</span>
-                <span class="inline-flex items-center gap-1 font-medium px-2 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px]">
-                  <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${tagColor}"></span>
-                  ${escapeHtml(tx.category || (isIncome ? 'Income' : 'General'))}
-                </span>
-              </div>
-            </div>
-          </div>
+          <!-- Description (Click to edit) -->
+          <td class="py-3 px-4 font-bold text-slate-900 dark:text-white">
+            <span class="editable-cell px-1.5 py-1 block" contenteditable="true" data-field="desc" data-id="${rec.id}">${escapeHtml(rec.desc)}</span>
+          </td>
 
-          <div class="flex items-center gap-3">
-            <span class="font-extrabold text-xs sm:text-sm whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}">
-              ${isIncome ? '+' : '-'}${formatCurrency(tx.amount)}
+          <!-- Category Pill Tag (Click to edit) -->
+          <td class="py-3 px-4">
+            <span class="editable-cell inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10" contenteditable="true" data-field="category" data-id="${rec.id}">
+              ${escapeHtml(rec.category || 'General')}
             </span>
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-smooth">
-              <button data-action="edit" class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white">
-                <i class="ph ph-pencil-simple text-xs"></i>
-              </button>
-              <button data-action="delete" class="p-1 rounded text-slate-400 hover:text-rose-600">
-                <i class="ph ph-trash text-xs"></i>
-              </button>
-            </div>
-          </div>
+          </td>
+
+          <!-- Inbound (+) -->
+          <td class="py-3 px-4 text-right font-mono font-bold whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-neon-emerald' : 'text-slate-300 dark:text-slate-700'}">
+            ${isIncome ? `<span class="editable-cell px-1.5 py-1" contenteditable="true" data-field="amount" data-id="${rec.id}">+${formatCurrency(rec.amount)}</span>` : '—'}
+          </td>
+
+          <!-- Outbound (-) -->
+          <td class="py-3 px-4 text-right font-mono font-bold whitespace-nowrap ${!isIncome ? 'text-rose-600 dark:text-neon-rose' : 'text-slate-300 dark:text-slate-700'}">
+            ${!isIncome ? `<span class="editable-cell px-1.5 py-1" contenteditable="true" data-field="amount" data-id="${rec.id}">-${formatCurrency(rec.amount)}</span>` : '—'}
+          </td>
+
+          <!-- Running Balance (Tabular Numeral) -->
+          <td class="py-3 px-4 text-right font-mono font-black whitespace-nowrap ${rec.runningBalance >= 0 ? 'text-slate-900 dark:text-white' : 'text-rose-500'}">
+            ${formatCurrency(rec.runningBalance)}
+          </td>
+
+          <!-- Delete Row Action -->
+          <td class="py-3 px-4 text-center">
+            <button type="button" data-action="delete" data-id="${rec.id}" title="Remove entry" class="p-1 rounded text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-smooth">
+              <i class="ph-bold ph-trash text-sm"></i>
+            </button>
+          </td>
         `;
 
-        card.querySelector('[data-action="edit"]').onclick = () => openEditTxModal(tx);
-        card.querySelector('[data-action="delete"]').onclick = () => {
-          store.deleteTransaction(tx.id);
-          renderApp();
-          showToast("Ledger entry removed", "info");
-        };
-
-        UI.txList.appendChild(card);
-      });
-    }
-
-    /* Render Sinking Funds */
-    function renderSinkingFunds() {
-      UI.sinkingCardsContainer.innerHTML = '';
-      let totalDrips = 0;
-
-      if (store.state.sinkingFunds.length === 0) {
-        UI.sinkingCardsContainer.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs">No active sinking funds. Protect future cash flow by creating an annual accrual fund!</div>`;
-        UI.totalMonthlySinkingDrip.textContent = "$0.00";
-        return;
-      }
-
-      store.state.sinkingFunds.forEach(fund => {
-        const stats = calculateSinkingDrip(fund);
-        totalDrips += stats.suggestedDrip;
-
-        const card = document.createElement('div');
-        card.className = "p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/40 shadow-xs space-y-3 relative group";
-
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="min-w-0">
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate">${escapeHtml(fund.name)}</h3>
-              <p class="text-[11px] text-cyan-600 dark:text-cyan-400 font-semibold flex items-center gap-1 mt-0.5">
-                <i class="ph ph-calendar-check"></i> Due ${formatDateDisplay(fund.targetDate)} (${stats.monthsLeft} mo left)
-              </p>
-            </div>
-            <div class="flex items-center gap-1">
-              <button data-action="edit" class="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                <i class="ph ph-pencil-simple text-xs"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="space-y-1">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-500">Saved: <b class="text-slate-900 dark:text-white">${formatCurrency(fund.saved)}</b></span>
-              <span class="font-semibold text-slate-700 dark:text-slate-300">Goal: ${formatCurrency(fund.goal)}</span>
-            </div>
-            <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-              <div class="h-full rounded-full bg-cyan-500 transition-all duration-300" style="width: ${stats.percent}%"></div>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-              <span>${stats.percent}% Funded</span>
-              <span>Need: ${formatCurrency(stats.remainingNeeded)}</span>
-            </div>
-          </div>
-
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700 flex items-center justify-between text-xs">
-            <div>
-              <span class="text-slate-400 block text-[10px] uppercase font-semibold">Suggested Drip</span>
-              <span class="font-bold text-cyan-600 dark:text-cyan-400">${formatCurrency(stats.suggestedDrip)}/mo</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <button data-action="drip" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition-smooth shadow-2xs">
-                + Drip
-              </button>
-              <button data-action="spend" class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 font-semibold text-xs transition-smooth">
-                Pay Bill
-              </button>
-            </div>
-          </div>
-        `;
-
-        card.querySelector('[data-action="edit"]').onclick = () => openEditSinkingModal(fund);
-        card.querySelector('[data-action="drip"]').onclick = () => {
-          store.dripIntoSinkingFund(fund.id, stats.suggestedDrip || 50);
-          renderApp();
-          showToast(`Accrued ${formatCurrency(stats.suggestedDrip || 50)} into ${fund.name}`, "success");
-        };
-        card.querySelector('[data-action="spend"]').onclick = () => openSpendSinkingModal(fund);
-
-        UI.sinkingCardsContainer.appendChild(card);
+        tbody.appendChild(tr);
       });
 
-      UI.totalMonthlySinkingDrip.textContent = formatCurrency(totalDrips);
-    }
-
-    /* Render Debt Accelerator */
-    function renderDebtAccelerator() {
-      UI.debtCardsList.innerHTML = '';
-      UI.priorityTargetCardContainer.innerHTML = '';
-
-      const debts = store.state.debts || [];
-      const activeDebts = debts.filter(d => d.balance > 0);
-
-      // Burndown Stats
-      let totalInitial = 0;
-      let totalCurrent = 0;
-      let totalMins = 0;
-
-      debts.forEach(d => {
-        totalInitial += Number(d.initialBalance || d.balance);
-        totalCurrent += Number(d.balance);
-        if (d.balance > 0) totalMins += Number(d.minPay);
-      });
-
-      const totalPaidOff = Math.max(0, totalInitial - totalCurrent);
-      const payoffPercent = totalInitial > 0 ? Math.min(100, Math.round((totalPaidOff / totalInitial) * 100)) : 100;
-
-      UI.debtPayoffPercentBadge.textContent = `${payoffPercent}% Paid Off (${formatCurrency(totalPaidOff)} cleared)`;
-      UI.debtBurndownBar.style.width = `${payoffPercent}%`;
-      UI.totalCurrentDebtLabel.textContent = formatCurrency(totalCurrent);
-      UI.totalMinPaymentLabel.textContent = `${formatCurrency(totalMins)}/mo`;
-
-      if (activeDebts.length === 0) {
-        UI.priorityTargetCardContainer.innerHTML = `
-          <div class="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center space-y-2">
-            <i class="ph-bold ph-confetti text-4xl text-emerald-600 dark:text-emerald-400"></i>
-            <h3 class="font-black text-lg text-emerald-900 dark:text-emerald-100">Household is 100% Debt Free!</h3>
-            <p class="text-xs text-emerald-700 dark:text-emerald-300">All consumer balances and loans are eliminated. Roll your accelerator funds into wealth-building investments.</p>
-          </div>
-        `;
-        return;
-      }
-
-      // Priority Target Sort
-      const sorted = getSortedDebts(store.state.debts, store.debtStrategy);
-      const priorityTarget = sorted[0];
-
-      // Identify Debt Envelope Allocation to compute Booster
-      const debtEnv = store.state.envelopes.find(e => e.name.toLowerCase().includes('debt')) || { budget: totalMins + 200 };
-      const totalDebtBudget = Number(debtEnv.budget) || totalMins;
-      const acceleratorBooster = Math.max(0, totalDebtBudget - totalMins);
-      const targetMonthlyAttack = priorityTarget.minPay + acceleratorBooster;
-
-      // Render Bullseye Target
-      UI.priorityTargetCardContainer.innerHTML = `
-        <div class="p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border-2 border-indigo-500/70 dark:border-indigo-500 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg shadow-sm">
-                <i class="ph-bold ph-crosshair"></i>
-              </span>
-              <div>
-                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">#1 Priority Focus Account (${store.debtStrategy.toUpperCase()})</span>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">${escapeHtml(priorityTarget.name)}</h3>
-              </div>
-            </div>
-            <div class="text-right sm:text-right">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Recommended Attack Payment</span>
-              <span class="text-lg font-black text-indigo-600 dark:text-indigo-400">${formatCurrency(targetMonthlyAttack)}</span>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/60 text-xs">
-            <div>
-              <span class="text-slate-400 block text-[10px]">Current Balance</span>
-              <span class="font-bold text-rose-500 text-sm">${formatCurrency(priorityTarget.balance)}</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block text-[10px]">APR Interest</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${priorityTarget.apr}%</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block text-[10px]">Contractual Min</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${formatCurrency(priorityTarget.minPay)}</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block text-[10px]">Surplus Accelerator</span>
-              <span class="font-bold text-emerald-600 text-sm">+${formatCurrency(acceleratorBooster)}</span>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-end gap-2 pt-1">
-            <button id="payMinTargetBtn" class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 text-xs font-semibold">
-              Pay Min (${formatCurrency(priorityTarget.minPay)})
-            </button>
-            <button id="payFullTargetBtn" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 flex items-center gap-1.5">
-              <i class="ph-bold ph-lightning"></i> Deploy Full Attack (${formatCurrency(targetMonthlyAttack)})
-            </button>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('payMinTargetBtn').onclick = () => {
-        store.payDownDebt(priorityTarget.id, priorityTarget.minPay, false);
-        renderApp();
-        showToast(`Paid minimum ${formatCurrency(priorityTarget.minPay)} on ${priorityTarget.name}`, "info");
-      };
-
-      document.getElementById('payFullTargetBtn').onclick = () => {
-        store.payDownDebt(priorityTarget.id, targetMonthlyAttack, true);
-        renderApp();
-        showToast(`Deployed accelerator payment ${formatCurrency(targetMonthlyAttack)} to ${priorityTarget.name}!`, "success");
-      };
-
-      // Render Remaining Debt Cards
-      debts.forEach(d => {
-        const isPriority = d.id === priorityTarget.id;
-        const card = document.createElement('div');
-        card.className = `p-4 rounded-2xl border ${isPriority ? 'border-indigo-400 dark:border-indigo-600 bg-indigo-50/30 dark:bg-slate-800/80' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40'} shadow-xs space-y-3 relative group`;
-
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">${escapeHtml(d.name)}</h4>
-              <p class="text-[11px] text-slate-400">APR: ${d.apr}% • Min: ${formatCurrency(d.minPay)}</p>
-            </div>
-            <button data-action="edit" class="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-white">
-              <i class="ph ph-pencil-simple text-xs"></i>
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between text-xs pt-1">
-            <span class="text-slate-500">Principal Due:</span>
-            <span class="font-black text-sm ${d.balance === 0 ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}">
-              ${d.balance === 0 ? 'PAID OFF' : formatCurrency(d.balance)}
-            </span>
-          </div>
-
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <button data-action="pay-min" ${d.balance === 0 ? 'disabled' : ''} class="flex-1 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 disabled:opacity-40">
-              Pay Min
-            </button>
-            <button data-action="pay-custom" ${d.balance === 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 disabled:opacity-40">
-              Pay Custom
-            </button>
-          </div>
-        `;
-
-        card.querySelector('[data-action="edit"]').onclick = () => openEditDebtModal(d);
-        card.querySelector('[data-action="pay-min"]').onclick = () => {
-          store.payDownDebt(d.id, d.minPay, false);
-          renderApp();
-          showToast(`Logged minimum payment for ${d.name}`, "info");
-        };
-        card.querySelector('[data-action="pay-custom"]').onclick = () => {
-          const val = prompt(`Enter payment amount for ${d.name}:`, d.minPay);
-          const amt = parseFloat(val);
-          if (amt && amt > 0) {
-            store.payDownDebt(d.id, amt, false);
-            renderApp();
-            showToast(`Logged ${formatCurrency(amt)} to ${d.name}`, "success");
+      // Bind Inline Cell Edit Events
+      tbody.querySelectorAll('.editable-cell').forEach(cell => {
+        cell.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            cell.blur();
           }
         };
 
-        UI.debtCardsList.appendChild(card);
-      });
-    }
+        cell.onblur = () => {
+          const id = cell.getAttribute('data-id');
+          const field = cell.getAttribute('data-field');
+          let val = cell.innerText.trim();
 
-    function populateCategoryDropdowns() {
-      UI.txCategory.innerHTML = '';
-      store.state.envelopes.forEach(e => {
-        const opt = document.createElement('option');
-        opt.value = e.name;
-        opt.textContent = e.name;
-        UI.txCategory.appendChild(opt);
-      });
-      const optReserve = document.createElement('option');
-      optReserve.value = 'Sinking Reserve';
-      optReserve.textContent = 'Sinking Reserve';
-      UI.txCategory.appendChild(optReserve);
+          if (field === 'amount') {
+            val = val.replace(/[^0-9.-]+/g, '');
+          }
 
-      const curVal = UI.filterCategory.value;
-      UI.filterCategory.innerHTML = '<option value="ALL">All Envelopes</option>';
-      store.state.envelopes.forEach(e => {
-        const opt = document.createElement('option');
-        opt.value = e.name;
-        opt.textContent = e.name;
-        UI.filterCategory.appendChild(opt);
+          if (val) {
+            store.updateRecord(id, field, val);
+            renderApp();
+            showToast("Row updated", "success");
+          } else {
+            renderApp(); // Re-render to revert empty text
+          }
+        };
       });
-      UI.filterCategory.value = curVal || 'ALL';
+
+      // Bind Delete Button Events
+      tbody.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          store.deleteRecord(id);
+          renderApp();
+          showToast("Row removed", "info");
+        };
+      });
     }
 
     function escapeHtml(str) {
@@ -1596,412 +584,126 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    /* ==================== MODAL CONTROLS ==================== */
+    /* Rapid Entry Flow Type Toggle */
+    function setRapidFlowType(type) {
+      currentEntryType = type;
+      const inBtn = document.getElementById('toggleInboundBtn');
+      const outBtn = document.getElementById('toggleOutboundBtn');
 
-    // Transaction Modal
-    function setTxType(type) {
-      activeTxModalType = type;
-      if (type === 'EXPENSE') {
-        UI.tabExpense.className = "py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-xs flex items-center justify-center gap-1.5";
-        UI.tabIncome.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-emerald-600 flex items-center justify-center gap-1.5";
-        UI.txEnvelopeGroup.classList.remove('hidden');
+      if (type === 'INBOUND') {
+        inBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth bg-white dark:bg-white/10 text-emerald-600 dark:text-neon-emerald shadow-xs flex items-center justify-center gap-1";
+        outBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth text-slate-500 dark:text-slate-400 hover:text-rose-500 flex items-center justify-center gap-1";
       } else {
-        UI.tabIncome.className = "py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs flex items-center justify-center gap-1.5";
-        UI.tabExpense.className = "py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-rose-600 flex items-center justify-center gap-1.5";
-        UI.txEnvelopeGroup.classList.add('hidden');
+        outBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth bg-white dark:bg-white/10 text-rose-600 dark:text-neon-rose shadow-xs flex items-center justify-center gap-1";
+        inBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth text-slate-500 dark:text-slate-400 hover:text-emerald-500 flex items-center justify-center gap-1";
       }
     }
 
-    function openNewTxModal() {
-      UI.txForm.reset();
-      UI.txId.value = '';
-      UI.txDate.value = getTodayString();
-      UI.txModalTitle.textContent = "New Ledger Entry";
-      setTxType('EXPENSE');
-      UI.txModal.classList.remove('hidden');
-      setTimeout(() => UI.txAmount.focus(), 60);
-    }
-
-    function openEditTxModal(tx) {
-      UI.txId.value = tx.id;
-      UI.txAmount.value = tx.amount;
-      UI.txDate.value = tx.date;
-      UI.txDescription.value = tx.description;
-      setTxType(tx.type);
-      if (tx.type === 'EXPENSE' && tx.category) UI.txCategory.value = tx.category;
-      UI.txModalTitle.textContent = "Edit Ledger Entry";
-      UI.txModal.classList.remove('hidden');
-    }
-
-    // Envelope Modal
-    function openNewEnvelopeModal() {
-      UI.envelopeForm.reset();
-      UI.envId.value = '';
-      UI.deleteEnvBtn.classList.add('hidden');
-      UI.envModalTitle.textContent = "New Envelope";
-      UI.envelopeModal.classList.remove('hidden');
-    }
-
-    function openEditEnvelopeModal(env) {
-      UI.envId.value = env.id;
-      UI.envName.value = env.name;
-      UI.envBudget.value = env.budget;
-      UI.envColor.value = env.color || '#4f46e5';
-      UI.deleteEnvBtn.classList.remove('hidden');
-      UI.envModalTitle.textContent = "Edit Envelope Target";
-      UI.envelopeModal.classList.remove('hidden');
-    }
-
-    // Sinking Fund Modal
-    function openNewSinkingModal() {
-      UI.sinkingForm.reset();
-      UI.sinkingId.value = '';
-      UI.deleteSinkingBtn.classList.add('hidden');
-      UI.sinkingModalTitle.textContent = "New Sinking Fund";
-      UI.sinkingModal.classList.remove('hidden');
-    }
-
-    function openEditSinkingModal(fund) {
-      UI.sinkingId.value = fund.id;
-      UI.sinkingName.value = fund.name;
-      UI.sinkingGoal.value = fund.goal;
-      UI.sinkingSaved.value = fund.saved;
-      UI.sinkingDate.value = fund.targetDate;
-      UI.deleteSinkingBtn.classList.remove('hidden');
-      UI.sinkingModalTitle.textContent = "Edit Sinking Fund";
-      UI.sinkingModal.classList.remove('hidden');
-    }
-
-    function openSpendSinkingModal(fund) {
-      UI.spendSinkingId.value = fund.id;
-      UI.spendSinkingFundTitle.textContent = `${fund.name} (Current Reserve: ${formatCurrency(fund.saved)})`;
-      UI.spendSinkingAmount.value = fund.saved;
-      
-      // Auto-advance target date by 1 year as default
-      const curr = new Date(fund.targetDate);
-      curr.setFullYear(curr.getFullYear() + 1);
-      UI.spendSinkingNextDate.value = curr.toISOString().split('T')[0];
-      
-      UI.spendSinkingModal.classList.remove('hidden');
-    }
-
-    // Debt Modal
-    function openNewDebtModal() {
-      UI.debtForm.reset();
-      UI.debtId.value = '';
-      UI.deleteDebtBtn.classList.add('hidden');
-      UI.debtModalTitle.textContent = "Add Household Liability";
-      UI.debtModal.classList.remove('hidden');
-    }
-
-    function openEditDebtModal(debt) {
-      UI.debtId.value = debt.id;
-      UI.debtName.value = debt.name;
-      UI.debtBalance.value = debt.balance;
-      UI.debtApr.value = debt.apr;
-      UI.debtMinPay.value = debt.minPay;
-      UI.debtInitial.value = debt.initialBalance || debt.balance;
-      UI.deleteDebtBtn.classList.remove('hidden');
-      UI.debtModalTitle.textContent = "Edit Liability";
-      UI.debtModal.classList.remove('hidden');
-    }
-
-    /* ==================== SPREADSHEET CSV & SNAPSHOT EXPORT ==================== */
-    function exportSyntrixCsv(forMonthOnly = false) {
-      let list = store.state.transactions;
-      if (forMonthOnly) {
-        const mo = store.getCurrentMonthKey();
-        list = list.filter(t => t.date && t.date.startsWith(mo));
-      }
-
-      if (list.length === 0) {
-        showToast("No transaction records available to export.", "error");
+    /* CSV Export Handler */
+    function exportToCsv() {
+      const { records } = store.getProcessedRecords();
+      if (!records || records.length === 0) {
+        showToast("No records to export", "error");
         return;
       }
 
-      const headers = ["Date", "Type", "Envelope/Category", "Amount", "Description"];
-      const rows = list.map(t => [
-        t.date,
-        t.type,
-        `"${(t.category || '').replace(/"/g, '""')}"`,
-        t.amount,
-        `"${(t.description || '').replace(/"/g, '""')}"`
+      const headers = ["Date", "Description", "Category", "Inbound", "Outbound", "Running Balance"];
+      const rows = records.map(r => [
+        r.date,
+        `"${(r.desc || '').replace(/"/g, '""')}"`,
+        `"${(r.category || '').replace(/"/g, '""')}"`,
+        r.type === 'INBOUND' ? r.amount : '',
+        r.type === 'OUTBOUND' ? r.amount : '',
+        r.runningBalance
       ]);
 
-      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-      downloadFile(csv, `SyntrixFi_Ledger_${store.getCurrentMonthKey()}.csv`, 'text/csv;charset=utf-8;');
-      showToast("CSV export ready", "success");
-    }
-
-    function exportSyntrixJson() {
-      const data = JSON.stringify(store.state, null, 2);
-      downloadFile(data, `SyntrixFi_Snapshot_${getTodayString()}.json`, 'application/json');
-      showToast("Full snapshot downloaded", "success");
-    }
-
-    function downloadFile(content, fileName, mimeType) {
-      const blob = new Blob([content], { type: mimeType });
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = `SyntrixFi_Ledger_${getTodayString()}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      showToast("CSV downloaded successfully", "success");
     }
 
-    /* ==================== EVENT BINDINGS ==================== */
-    // Nav Tabs
-    UI.tabNavEnvelopes.onclick = () => switchView('envelopes');
-    UI.tabNavSinking.onclick = () => switchView('sinking');
-    UI.tabNavDebt.onclick = () => switchView('debt');
-
-    // Strategy Toggles
-    UI.strategySnowballBtn.onclick = () => {
-      store.debtStrategy = 'snowball';
-      UI.strategySnowballBtn.className = "px-3 py-1 rounded-lg text-xs font-bold transition-smooth bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs flex items-center gap-1.5";
-      UI.strategyAvalancheBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-smooth flex items-center gap-1.5";
-      renderDebtAccelerator();
-    };
-
-    UI.strategyAvalancheBtn.onclick = () => {
-      store.debtStrategy = 'avalanche';
-      UI.strategyAvalancheBtn.className = "px-3 py-1 rounded-lg text-xs font-bold transition-smooth bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs flex items-center gap-1.5";
-      UI.strategySnowballBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-smooth flex items-center gap-1.5";
-      renderDebtAccelerator();
-    };
-
-    // Auto-Drip All Sinking Funds
-    UI.autoDripAllBtn.onclick = () => {
-      store.state.sinkingFunds.forEach(fund => {
-        const stats = calculateSinkingDrip(fund);
-        if (stats.suggestedDrip > 0) {
-          store.dripIntoSinkingFund(fund.id, stats.suggestedDrip);
-        }
-      });
-      renderApp();
-      showToast("Auto-dripped all active sinking reserves for this month!", "success");
-    };
-
-    // Month Prev / Next
-    UI.prevMonthBtn.onclick = () => { store.changeMonth(-1); renderApp(); };
-    UI.nextMonthBtn.onclick = () => { store.changeMonth(1); renderApp(); };
-
-    // Modals Open
-    UI.openNewTxModalBtn.onclick = openNewTxModal;
-    UI.mobileNewTxBtn.onclick = openNewTxModal;
-    UI.openNewEnvelopeBtn.onclick = openNewEnvelopeModal;
-    UI.openNewSinkingModalBtn.onclick = openNewSinkingModal;
-    UI.openNewDebtModalBtn.onclick = openNewDebtModal;
-    UI.openDataModalBtn.onclick = () => UI.dataModal.classList.remove('hidden');
-
-    // Modals Close
-    UI.closeTxModalBtn.onclick = () => UI.txModal.classList.add('hidden');
-    UI.closeEnvModalBtn.onclick = () => UI.envelopeModal.classList.add('hidden');
-    UI.closeSinkingModalBtn.onclick = () => UI.sinkingModal.classList.add('hidden');
-    UI.closeSpendSinkingModalBtn.onclick = () => UI.spendSinkingModal.classList.add('hidden');
-    UI.closeDebtModalBtn.onclick = () => UI.debtModal.classList.add('hidden');
-    UI.closeDataModalBtn.onclick = () => UI.dataModal.classList.add('hidden');
-
-    // Click Outside Backdrop to Close
-    [UI.txModal, UI.envelopeModal, UI.sinkingModal, UI.spendSinkingModal, UI.debtModal, UI.dataModal].forEach(modal => {
-      modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
-    });
-
-    // Form Submissions
-    UI.tabExpense.onclick = () => setTxType('EXPENSE');
-    UI.tabIncome.onclick = () => setTxType('INCOME');
-
-    UI.txForm.onsubmit = (e) => {
-      e.preventDefault();
-      const id = UI.txId.value;
-      const amount = parseFloat(UI.txAmount.value);
-      const date = UI.txDate.value;
-      const description = UI.txDescription.value.trim();
-      const category = activeTxModalType === 'INCOME' ? 'Income' : UI.txCategory.value;
-
-      if (!amount || amount <= 0 || !date || !description) return;
-
-      if (id) {
-        store.updateTransaction({ id, type: activeTxModalType, amount, date, description, category });
-        showToast("Transaction updated", "success");
-      } else {
-        store.addTransaction({ type: activeTxModalType, amount, date, description, category });
-        showToast("Transaction recorded", "success");
-      }
-      UI.txModal.classList.add('hidden');
-      renderApp();
-    };
-
-    UI.envelopeForm.onsubmit = (e) => {
-      e.preventDefault();
-      const id = UI.envId.value;
-      const name = UI.envName.value.trim();
-      const budget = parseFloat(UI.envBudget.value) || 0;
-      const color = UI.envColor.value;
-      if (!name) return;
-
-      store.saveEnvelope({ id: id || undefined, name, budget, color });
-      UI.envelopeModal.classList.add('hidden');
-      renderApp();
-      showToast(id ? "Envelope updated" : "Envelope created", "success");
-    };
-
-    UI.deleteEnvBtn.onclick = () => {
-      const id = UI.envId.value;
-      if (id) {
-        store.deleteEnvelope(id);
-        UI.envelopeModal.classList.add('hidden');
-        renderApp();
-        showToast("Envelope removed", "info");
-      }
-    };
-
-    UI.sinkingForm.onsubmit = (e) => {
-      e.preventDefault();
-      const id = UI.sinkingId.value;
-      const name = UI.sinkingName.value.trim();
-      const goal = parseFloat(UI.sinkingGoal.value) || 0;
-      const saved = parseFloat(UI.sinkingSaved.value) || 0;
-      const targetDate = UI.sinkingDate.value;
-      if (!name || !targetDate) return;
-
-      store.saveSinkingFund({ id: id || undefined, name, goal, saved, targetDate });
-      UI.sinkingModal.classList.add('hidden');
-      renderApp();
-      showToast("Sinking fund updated", "success");
-    };
-
-    UI.deleteSinkingBtn.onclick = () => {
-      const id = UI.sinkingId.value;
-      if (id) {
-        store.deleteSinkingFund(id);
-        UI.sinkingModal.classList.add('hidden');
-        renderApp();
-        showToast("Sinking fund deleted", "info");
-      }
-    };
-
-    UI.spendSinkingForm.onsubmit = (e) => {
-      e.preventDefault();
-      const id = UI.spendSinkingId.value;
-      const amt = parseFloat(UI.spendSinkingAmount.value) || 0;
-      const nextDate = UI.spendSinkingNextDate.value;
-      if (id && amt > 0) {
-        store.spendAndDrainSinkingFund(id, amt, nextDate);
-        UI.spendSinkingModal.classList.add('hidden');
-        renderApp();
-        showToast("Bill logged and reserve reset!", "success");
-      }
-    };
-
-    UI.debtForm.onsubmit = (e) => {
-      e.preventDefault();
-      const id = UI.debtId.value;
-      const name = UI.debtName.value.trim();
-      const balance = parseFloat(UI.debtBalance.value) || 0;
-      const apr = parseFloat(UI.debtApr.value) || 0;
-      const minPay = parseFloat(UI.debtMinPay.value) || 0;
-      const initialBalance = parseFloat(UI.debtInitial.value) || balance;
-      if (!name) return;
-
-      store.saveDebt({ id: id || undefined, name, balance, apr, minPay, initialBalance });
-      UI.debtModal.classList.add('hidden');
-      renderApp();
-      showToast("Liability recorded", "success");
-    };
-
-    UI.deleteDebtBtn.onclick = () => {
-      const id = UI.debtId.value;
-      if (id) {
-        store.deleteDebt(id);
-        UI.debtModal.classList.add('hidden');
-        renderApp();
-        showToast("Liability deleted", "info");
-      }
-    };
-
-    // Filter Listeners
-    UI.filterType.onchange = renderApp;
-    UI.filterCategory.onchange = renderApp;
-    UI.searchQuery.oninput = renderApp;
-
-    // Export Handlers
-    UI.quickExportLedgerBtn.onclick = () => exportSyntrixCsv(true);
-    UI.exportCsvBtn.onclick = () => exportSyntrixCsv(false);
-    UI.exportJsonBtn.onclick = exportSyntrixJson;
-
-    // Demo Data Reset
-    UI.resetDemoDataBtn.onclick = () => {
-      store.state = {
-        envelopes: DEFAULT_ENVELOPES,
-        transactions: getDefaultTransactions(),
-        sinkingFunds: DEFAULT_SINKING_FUNDS,
-        debts: DEFAULT_DEBTS,
-        settings: { theme: 'system' }
-      };
-      store.saveState();
-      renderApp();
-      UI.dataModal.classList.add('hidden');
-      showToast("SyntrixFi restored to baseline demo state", "info");
-    };
-
-    // JSON Restore
-    UI.jsonFileInput.onchange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const parsed = JSON.parse(event.target.result);
-          if (store.replaceState(parsed)) {
-            renderApp();
-            UI.dataModal.classList.add('hidden');
-            showToast("SyntrixFi snapshot restored successfully", "success");
-          } else {
-            showToast("Invalid SyntrixFi JSON snapshot", "error");
-          }
-        } catch (err) {
-          showToast("Failed to parse snapshot file", "error");
-        }
-      };
-      reader.readAsText(file);
-    };
-
-    // Theme Management
+    /* Theme Management: Auto / Adaptive System + Manual Toggle */
     function initTheme() {
-      const stored = localStorage.getItem('syntrix_theme') || 'system';
+      const stored = SafeStorage.getItem('syntrix_theme') || 'system';
       const isDark = stored === 'dark' || (stored === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.classList.toggle('dark', isDark);
-      UI.themeIcon.classList.toggle('ph-sun', isDark);
-      UI.themeIcon.classList.toggle('ph-moon', !isDark);
+      updateThemeIcon(isDark);
     }
 
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('syntrix_theme', isDark ? 'dark' : 'light');
-      UI.themeIcon.classList.toggle('ph-sun', isDark);
-      UI.themeIcon.classList.toggle('ph-moon', !isDark);
+      SafeStorage.setItem('syntrix_theme', isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark);
     }
 
-    UI.themeToggleBtn.onclick = toggleTheme;
-    UI.mobileThemeToggleBtn.onclick = toggleTheme;
-
-    // Hotkey: 'N' for New Entry, 'Esc' to dismiss
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        [UI.txModal, UI.envelopeModal, UI.sinkingModal, UI.spendSinkingModal, UI.debtModal, UI.dataModal].forEach(m => m.classList.add('hidden'));
+    function updateThemeIcon(isDark) {
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isDark ? 'ph-bold ph-sun text-base text-amber-400' : 'ph-bold ph-moon text-base text-slate-700';
       }
-      if ((e.key === 'n' || e.key === 'N') && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        openNewTxModal();
-      }
-    });
+    }
 
-    // Run On Load
-    window.onload = function () {
+    /* Initialize Everything On Load */
+    window.onload = function() {
       initTheme();
+
+      // Set default rapid entry date to today
+      const dateInput = document.getElementById('inputDate');
+      if (dateInput) dateInput.value = getTodayString();
+
+      // Toggle Flow Listeners
+      document.getElementById('toggleInboundBtn').onclick = () => setRapidFlowType('INBOUND');
+      document.getElementById('toggleOutboundBtn').onclick = () => setRapidFlowType('OUTBOUND');
+
+      // Theme & Export Listeners
+      document.getElementById('themeToggleBtn').onclick = toggleTheme;
+      document.getElementById('exportCsvBtn').onclick = exportToCsv;
+      document.getElementById('resetDemoBtn').onclick = () => {
+        store.resetToDemo();
+        renderApp();
+        showToast("Reset to sample demo ledger", "info");
+      };
+
+      // Search Filter Listener
+      document.getElementById('searchLedgerInput').oninput = renderApp;
+
+      // Rapid Row Form Submission
+      document.getElementById('rapidEntryForm').onsubmit = (e) => {
+        e.preventDefault();
+        const date = document.getElementById('inputDate').value;
+        const desc = document.getElementById('inputDesc').value.trim();
+        const category = document.getElementById('inputCategory').value.trim() || 'General';
+        const amount = parseFloat(document.getElementById('inputAmount').value);
+
+        if (!date || !desc || isNaN(amount) || amount <= 0) return;
+
+        store.addRecord({
+          date,
+          desc,
+          category,
+          type: currentEntryType,
+          amount
+        });
+
+        // Reset inputs and keep high-speed workflow focus
+        document.getElementById('inputDesc').value = '';
+        document.getElementById('inputCategory').value = '';
+        document.getElementById('inputAmount').value = '';
+        document.getElementById('inputDesc').focus();
+
+        renderApp();
+        showToast("Entry added to ledger", "success");
+      };
+
+      // Render initial dataset
       renderApp();
     };
   </script>
